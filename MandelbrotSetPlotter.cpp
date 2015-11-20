@@ -13,6 +13,7 @@ struct complex_number
 
 void generate_mandelbrot_set(sf::VertexArray& vertexarray, int pixel_shift_x, int pixel_shift_y, int precision, float zoom)
 {
+#pragma omp parallel for
     for(int i = 0; i < height; i++)
     {
         for (int j = 0; j < width; j++)
@@ -62,7 +63,8 @@ void generate_mandelbrot_set(sf::VertexArray& vertexarray, int pixel_shift_x, in
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode(width, height), "Mandelbrot Set Plotter");
+    sf::String title_string = "Mandelbrot Set Plotter";
+    sf::RenderWindow window(sf::VideoMode(width, height), title_string);
     window.setFramerateLimit(30);
     sf::VertexArray pointmap(sf::Points, width * height);
     
@@ -85,11 +87,12 @@ int main()
         //zoom into area that is left clicked
         if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
         {
-            sf::Vector2i position = sf::Mouse::getPosition();
+            sf::Vector2i position = sf::Mouse::getPosition(window);
             x_shift -= position.x - x_shift;
             y_shift -= position.y - y_shift;
             zoom *= 2;
             precision += 200;
+#pragma omp parallel for
             for (int i = 0; i < width*height; i++)
             {
                 pointmap[i].color = sf::Color::Black;
